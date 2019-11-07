@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222531">
+</head>
+
+<body>
+  <h1>Session Iframe</h1>
+  <script type="text/javascript">
+
+
+    const allowedOrigins = [
+      'http://127.0.0.1:8000',
+      'http://127.0.0.1:4200'
+    ];
+    window.onmessage = (e) => {
+
+      //
+      //
+      // TASK 5
+      const receiveMessage = (e) => {
+        console.log(e)
+        //"reply" with a serialized function
+        e.source.postMessage(serializeFunction(doSomething), "http://127.0.0.1:8000");
+      }
+
+      const serializeFunction = (f) => {
+        return encodeURI(f.toString());
+      }
+
+      const doSomething = (text) => {
+       alert("callback function from iframe is working. Task #5");
+      }
+      //
+      //
+      // END TASK 5
+
+      if (!allowedOrigins.includes(e.origin)) {
+        return;
+      }
+      const payload = JSON.parse(e.data);
+      switch (payload.method) {
+        case 'set':
+          localStorage.setItem(payload.key, payload.data);
+          receiveMessage(e);
+          break;
+        case 'get':
+          const parent = window.parent;
+          const data = localStorage.getItem(payload.key);
+          const returnPayload = {
+            method: 'storage#get',
+            data: data
+          }
+          parent.postMessage(JSON.stringify(returnPayload), '*');
+          // receiveMessage(e);
+          break;
+        case 'remove':
+          localStorage.removeItem(payload.key);
+          // receiveMessage(e);
+          break;
+      }
+    };
+  </script>
+</body>
+
+</html>

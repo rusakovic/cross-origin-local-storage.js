@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Index</title>
+
+  <script src="/current-origin/cross-origin-local-storage.js" charset="utf-8"></script>
+</head>
+
+<body>
+  <iframe src="http://localhost:4200/session-iframe.html" width="300px" height="300px"></iframe>
+
+  <script>
+    /// CREDENTIALS to https://gist.github.com/buren/8d7c831822bc474164cc37dd522c2d1d
+    // AND http://qaru.site/questions/592731/how-to-execute-a-function-through-postmessage
+    
+    // allowed websites. in test task are domain.one and domain.two and we replace them
+    // by following addresses
+    const allowedOrigins = [
+      'http://127.0.0.1:8000',
+      'http://127.0.0.1:4200'
+    ];
+    window.onload = () => {
+
+      // TASK 5 added listener for message from iframe
+      window.addEventListener("message", receiveMessage, false);//set up the listener
+      function receiveMessage(e) {
+        try {
+          //attempt to deserialize function and execute as closure
+          eval('(' + decodeURI(e.data) + ')();');
+        } catch (e) { }
+      }
+      // END TASK 5
+
+      const onMessage = (payload, event) => {
+        const data = payload.data;
+        switch (payload.method) {
+          case 'storage#get':
+            console.log('message data', payload);
+            break;
+          default:
+            console.error('Unknown method "' + payload.method + '"', payload);
+        }
+      };
+      const iframe = document.getElementsByTagName('iframe')[0];
+      const cross = new CrossOriginLocalStorage(window, iframe, allowedOrigins, onMessage);
+
+      // methods for setting, getting(reading) and remove the data from iframe localstorage
+      cross.setData('name', 'buren')
+      cross.getData('name');
+      cross.removeData('name')
+    };
+  </script>
+</body>
+
+</html>
